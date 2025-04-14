@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Location with Traffic (Free)</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map { height: 100vh; width: 100vw; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([20.5937, 78.9629], 10); // Default center (India)
+
+        // **Add OpenStreetMap (FREE)**
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // **Add Traffic Layer (Using OpenTraffic via Carto)**
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; CARTO Traffic Data',
+            opacity: 0.6
+        }).addTo(map);
+
+        // **Live Location Tracking**
+        function updateLocation(position) {
+            var lat = position.coords.latitude;
+            var lng = position.coords.longitude;
+
+            // Move map to current location
+            map.setView([lat, lng], 14);
+
+            // Add or update the marker
+            if (window.userMarker) {
+                window.userMarker.setLatLng([lat, lng]);
+            } else {
+                window.userMarker = L.marker([lat, lng]).addTo(map)
+                    .bindPopup("You are here").openPopup();
+            }
+        }
+
+        function handleError(error) {
+            console.error("Error getting location:", error);
+        }
+
+        // Get live location updates
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(updateLocation, handleError, {
+                enableHighAccuracy: true,
+                maximumAge: 0
+            });
+        } else {
+            alert("Geolocation is not supported by your browser.");
+        }
+    </script>
+</body>
+</html>

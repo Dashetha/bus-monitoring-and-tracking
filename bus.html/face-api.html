@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Attendance with Face Recognition</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+        }
+        #canvas {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+        }
+        #output {
+            margin-top: 10px;
+        }
+        #video {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Student Attendance System (Face Recognition)</h1>
+
+    <video id="video" width="640" height="480" autoplay muted></video>
+    <div id="output"></div>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        let labeledFaceDescriptors = [];
+        let studentData = {
+            "student1": "path_to_student1_image.jpg",
+            "student2": "path_to_student2_image.jpg",
+        };
+
+        // Load the necessary models
+        async function loadModels() {
+            try {
+                await faceapi.nets.ssdMobilenetv1.loadFromUri('/models');
+                await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+                await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
+                console.log("Models loaded successfully");
+                startVideo();
+            } catch (error) {
+                console.error("Error loading models:", error);
+                alert("Failed to load models.");
+            }
+        }
+
+        // Start video capture from webcam
+        function startVideo() {
+            navigator.mediaDevices.getUserMedia({ video: {} })
+                .then((stream) => {
+                    const video = document.getElementById('video');
+                    video.srcObject = stream;
+                })
+                .catch((err) => {
+                    console.error('Error accessing webcam: ', err);
+                });
+        }
+
+        // Register students' faces
+        async function registerStudents() {
+            for (const student in studentData) {
+                const img = await faceapi.fetchImage(studentData[student]);
+                const detections = await faceapi.detectSingleFace(img)
+                    .withFaceLandmarks()
+                    .withFaceDescriptor();
+                
+                if (detections) {
+                    const faceDescriptor = detections.descriptor;
+                    labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(student, [faceDescriptor]));
+                }
+            }
+        }
+
+        // Handle real-time face detection and recognition
+        async function handleVideo() {
+            const video = document.getElementById('video');
+            const canvas = faceapi.createCanvasFromMedia(video);
+            document.body.append(canvas);
+            faceapi.matchDimensions(canvas, video);
+
+            setInterval(async () => {
+                const detections = await faceapi.detectAllFaces(video)
+                    .withFaceLandmarks()
+                    .withFaceDescriptors();
+                
+                const resizedDetections = faceapi.resizeResults(detections, video);
+                canvas?.clear();
+                faceapi.draw.drawDetections(canvas, resizedDetections);
+                faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+
+                if (detections.length > 0) {
+                    const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6);  // 0.6 is the threshold for face matching
+                    const bestMatch = faceMatcher.findBestMatch(detections[0].descriptor);
+                    const studentName = bestMatch.label;
+                    document.getElementById('output').innerText = `Student recognized: ${studentName}`;
+
+                    // Automatically mark attendance
+                    markAttendance(studentName);
+                }
+            }, 100);
+        }
+
+        // Mark attendance
+        function markAttendance(studentName) {
+            // For simplicity, we're just logging the attendance to the console.
+            // You could save this data to a database for persistence.
+            console.log(`Attendance marked for: ${studentName}`);
+
+            // Optionally: You can send the attendance data to a backend server for storage.
+            // Example:
+            // fetch('/mark-attendance', {
+            //     method: 'POST',
+            //     body: JSON.stringify({ studentName, timestamp: new Date() }),
+            //     headers: { 'Content-Type': 'application/json' }
+            // })
+            // .then(response => response.json())
+            // .then(data => console.log('Attendance marked:', data))
+            // .catch(error => console.error('Error marking attendance:', error));
+        }
+
+        // Load models, register students, and start video on page load
+        window.onload = async function() {
+            await loadModels();
+            await registerStudents();
+            handleVideo();
+        };
+    </script>
+</body>
+</html>

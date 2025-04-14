@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Tracking & Geofencing (Leaflet & OSM)</title>
+    
+    <!-- Leaflet.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h2>Live Location Tracking with Geofencing (OpenStreetMap)</h2>
+    <div id="map"></div>
+
+    <!-- Leaflet.js Library -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script>
+        let map, marker, circle;
+        const geofenceCenter = [37.7749, -122.4194]; // Example: San Francisco
+        const geofenceRadius = 1000; // 1km radius
+
+        // Initialize the map
+        map = L.map('map').setView(geofenceCenter, 14);
+
+        // Add OpenStreetMap Tile Layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Add Geofence Circle
+        circle = L.circle(geofenceCenter, {
+            color: 'red',
+            fillColor: '#f03',
+            fillOpacity: 0.5,
+            radius: geofenceRadius
+        }).addTo(map);
+
+        // Add Marker
+        marker = L.marker(geofenceCenter).addTo(map);
+
+        // Track User Location
+        function trackUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition((position) => {
+                    const userLocation = [position.coords.latitude, position.coords.longitude];
+
+                    marker.setLatLng(userLocation);
+                    map.setView(userLocation, 14);
+
+                    checkGeofence(userLocation);
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        // Check if user is inside or outside the geofence
+        function checkGeofence(userLocation) {
+            const distance = map.distance(userLocation, geofenceCenter);
+
+            if (distance > geofenceRadius) {
+                alert("You are outside the geofenced area!");
+            }
+        }
+
+        trackUserLocation();
+    </script>
+</body>
+</html>

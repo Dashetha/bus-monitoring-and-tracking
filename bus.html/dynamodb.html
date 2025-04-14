@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DynamoDB Data</title>
+</head>
+<body>
+    <h1>DynamoDB Data</h1>
+    <ul id="data-list"></ul>
+
+    <script>
+        const API_URL = "https://vo2mkuh6ibhgvpggqljqopyp4m.appsync-api.eu-north-1.amazonaws.com/graphql"; // Replace with your API URL
+        const API_KEY = "da2-bukpc75ypzc4pnetxfnxpqnc2q"; // Replace with your AppSync API key
+
+        async function fetchData() {
+            const query = {
+                query: `query ListData {
+                    scanMyTable {
+                        items {
+                            
+                            name
+                        }
+                    }
+                }`
+            };
+
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": API_KEY
+                },
+                body: JSON.stringify(query)
+            });
+
+            const data = await response.json();
+            const list = document.getElementById("data-list");
+            data.data.scanMyTable.items.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = `${item.id}: ${item.name}`;
+                list.appendChild(li);
+            });
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>

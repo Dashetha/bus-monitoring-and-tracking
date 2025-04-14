@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Management Dashboard</title>
+    <style>
+        /* Basic reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-image: url('https://stjosephs.ac.in/sliderinfra/Bus2.jpg'); /* Replace with your image URL */
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fc;
+            color: #000000;
+        }
+
+        /* Dashboard layout */
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background-color: #e9e50fe3;
+            color: rgb(14, 1, 1);
+            padding: 10px 0;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: #e6e20dee;
+            color: rgb(17, 2, 2);
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 20px;
+        }
+
+        .sidebar a {
+            color: rgb(0, 0, 0);
+            text-decoration: none;
+            display: block;
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #444;
+            font-size: 18px;
+        }
+
+        .sidebar a:hover {
+            background-color: #ffffff;
+        }
+
+        /* Main content area */
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+
+        /* Card style */
+        .card {
+            background-color: rgba(255, 255, 255, 0.75);
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(12, 12, 12, 0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .card:hover {
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .card-content {
+            font-size: 16px;
+        }
+
+        .button {
+            background-color: #000000;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .button:hover {
+            background-color: #eb0e0e;
+        }
+
+        /* Additional style for the attendance section */
+        .attendance-box {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .attendance-box span {
+            flex: 1;
+        }
+
+        .attendance-box button {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2 style="text-align:center;">Dashboard</h2>
+            <a href="#" id="attendance-btn">Driver Attendance</a>
+            <a href="#" id="bus-tracking-btn">Bus Tracking</a>
+            <a href="#" id="bus-timing-btn">Bus Timing</a>
+            <a href="#" id="bus-details-btn">Bus Details</a>
+            <a href="#" id="driver-details-btn">Driver Details</a>
+        </div>
+
+        <!-- Main content -->
+        <div class="main-content">
+            <header>
+                Bus Management Dashboard
+            </header>
+
+            <!-- Attendance Section -->
+            <div class="card" id="attendance-card">
+                <div class="card-title">Driver Attendance</div>
+                <div class="card-content">
+                    <!-- Driver Attendance Boxes -->
+                    <div class="attendance-box">
+                        <span>Suresh</span>
+                        <span>Kalliappa</span>
+                        <span id="attendance-status-1">Present</span>
+                        <button class="button" onclick="updateAttendance(1)">Mark as Absent</button>
+                    </div>
+                    <div class="attendance-box">
+                        <span>Karthick</span>
+                        <span>Urappakam</span>
+                        <span id="attendance-status-2">Present</span>
+                        <button class="button" onclick="updateAttendance(2)">Mark as Absent</button>
+                    </div>
+                    <div class="attendance-box">
+                        <span>Mani</span>
+                        <span>Royapettah</span>
+                        <span id="attendance-status-3">Present</span>
+                        <button class="button" onclick="updateAttendance(3)">Mark as Absent</button>
+                    </div>
+                    <div class="attendance-box">
+                        <span>Selvam</span>
+                        <span>NGO colony</span>
+                        <span id="attendance-status-4">Present</span>
+                        <button class="button" onclick="updateAttendance(4)">Mark as Absent</button>
+                    </div>
+                    <div class="attendance-box">
+                        <span>Sekar</span>
+                        <span>Tondaripet</span>
+                        <span id="attendance-status-5">Present</span>
+                        <button class="button" onclick="updateAttendance(5)">Mark as Absent</button>
+                    </div>
+                    <div class="attendance-box">
+                        <span>Siva</span>
+                        <span>Balaji Nagar</span>
+                        <span id="attendance-status-6">Present</span>
+                        <button class="button" onclick="updateAttendance(6)">Mark as Absent</button>
+                    </div>
+                    <div class="attendance-box">
+                        <span>Selvam</span>
+                        <span>Besant Nagar</span>
+                        <span id="attendance-status-7">Present</span>
+                        <button class="button" onclick="updateAttendance(7)">Mark as Absent</button>
+                    </div>
+                    <div class="attendance-box">
+                        <span>Ram</span>
+                        <span>Perambur</span>
+                        <span id="attendance-status-8">Present</span>
+                        <button class="button" onclick="updateAttendance(8)">Mark as Absent</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bus Tracking Section -->
+            <div class="card" id="bus-tracking-card">
+                <div class="card-title">Bus Tracking</div>
+                <div class="card-content">
+                    <br>
+                    <p>Bus Name: Kalliappa</p>
+                    <p>Current Location: <span id="bus-location">Station A</span></p>
+                    <a href="p2.html">
+                    <button class="button">Track Bus</button>
+                    </a>
+                    </br>
+                    <br>
+                    <p>Bus Name: Urrapakam</p>
+                    <p>Current Location: <span id="bus-location">Station A</span></p>
+                    <a href="p2.html">
+                    <button class="button" onclick="trackBus()">Track Bus</button></a></br>
+                    <br>
+                    <p>Bus Name: Royapettah</p>
+                    <p>Current Location: <span id="bus-location">Station A</span></p>
+                    <a href="trackbus.html">
+                    <button class="button" onclick="trackBus()">Track Bus</button></a></br>
+                    <br>
+                    <p>Bus Name: Redhills</p>
+                    <p>Current Location: <span id="bus-location">Station A</span></p>
+                    <a href="p2.html"></a>
+                    <button class="button" onclick="trackBus()">Track Bus</button></a></br>
+                </div>
+            </div>
+
+            <!-- Bus Timing Section -->
+            <div class="card" id="bus-timing-card">
+                <div class="card-title">Bus Timing</div>
+                <div class="card-content">
+                    <p>Next Departure: <span id="next-departure">10:30 AM</span></p>
+                    <button class="button" onclick="updateTiming()">Update Timing</button>
+                </div>
+            </div>
+
+            <!-- Bus Details Section -->
+            <div class="card" id="bus-details-card">
+                <div class="card-title">Bus Details</div>
+                <div class="card-content">
+                    <br><p><strong>Bus Name:</strong> Kalliappa</p>
+                    <p><strong>Bus Number:</strong> TN 01 AB 1234</p>
+                    <p><strong>Route:</strong> Kalliappa via Adyar</p>
+                    <p><strong>Capacity:</strong> 50 passengers</p>
+                    <p><strong>Status:</strong> Active</p></br>
+                    <br><p><strong>Bus Name:</strong> Red Hills</p>
+                    <p><strong>Bus Number:</strong> TN 01 AB 1234</p>
+                    <p><strong>Route:</strong> Redhills via Royapettah</p>
+                    <p><strong>Capacity:</strong> 50 passengers</p>
+                    <p><strong>Status:</strong> Active</p></br>
+                    <br><p><strong>Bus Name:</strong>Perambur</p>
+                    <p><strong>Bus Number:</strong> TN 01 AB 1234</p>
+                    <p><strong>Route:</strong> perambur via teynampet</p>
+                    <p><strong>Capacity:</strong> 50 passengers</p>
+                    <p><strong>Status:</strong> Active</p></br>
+                    <br><p><strong>Bus Name:</strong>Tondaripet</p>
+                    <p><strong>Bus Number:</strong> TN 01 AB 1234</p>
+                    <p><strong>Route:</strong> Tondaripet via marina</p>
+                    <p><strong>Capacity:</strong> 50 passengers</p>
+                    <p><strong>Status:</strong> Active</p></br>
+                    <br><p><strong>Bus Name:</strong>Tambaram</p>
+                    <p><strong>Bus Number:</strong> TN 01 AB 1234</p>
+                    <p><strong>Route:</strong> Tambaram via Dml</p>
+                    <p><strong>Capacity:</strong> 50 passengers</p>
+                    <p><strong>Status:</strong> Active</p></br>
+                    <br><p><strong>Bus Name:</strong>Hasthinapuram</p>
+                    <p><strong>Bus Number:</strong> TN 01 AB 1234</p>
+                    <p><strong>Route:</strong> Tambaram via Dml</p>
+                    <p><strong>Capacity:</strong> 50 passengers</p>
+                    <p><strong>Status:</strong> Active</p></br>
+                    <br><p><strong>Bus Name:</strong>Royapettah</p>
+                    <p><strong>Bus Number:</strong> TN 01 AB 1234</p>
+                    <p><strong>Route:</strong> royapettah via adyar</p>
+                    <p><strong>Capacity:</strong> 50 passengers</p>
+                    <p><strong>Status:</strong> Active</p></br>
+                    <br><p><strong>Bus Name:</strong>chengalpattu</p>
+                    <p><strong>Bus Number:</strong> TN 01 AB 1234</p>
+                    <p><strong>Route:</strong> chengalpattu via vandalur</p>
+                    <p><strong>Capacity:</strong> 50 passengers</p>
+                    <p><strong>Status:</strong> Active</p></br>
+                    <br><p><strong>Bus Name:</strong>besant nagar</p>
+                    <p><strong>Bus Number:</strong> TN 01 AB 1234</p>
+                    <p><strong>Route:</strong> Tambaram via Dml</p>
+                    <p><strong>Capacity:</strong> 50 passengers</p>
+                    <p><strong>Status:</strong> Active</p></br>
+
+
+
+                </div>
+            </div>
+
+            <!-- Driver Details Section -->
+            <div class="card" id="driver-details-card">
+                <div class="card-title">Driver Details</div>
+                <div class="card-content">
+                    <p><strong>Driver Name:</strong> Suresh</p>
+                
+                    <p><strong>Contact:</strong> +91 9876543210</p>
+                    <p><strong>Assigned Bus:</strong> Kalliappa</p>
+                    
+                    <br><p><strong>Driver Name:</strong> Ramesh</p>
+                    <p><strong>Contact:</strong> +91 9876543210</p>
+                    <p><strong>Assigned Bus:</strong> Tambaram</p>
+                    </br>
+
+                    <br><p><strong>Driver Name:</strong> Guna </p>
+                    
+                    <p><strong>Contact:</strong> +91 9876543230</p>
+                    <p><strong>Assigned Bus:</strong> Redhills</p>
+</br>
+                    <br><p><strong>Driver Name:</strong> vignesh</p>
+                    
+                    <p><strong>Contact:</strong> +91 9876543310</p>
+                    <p><strong>Assigned Bus:</strong> Tondaripet</p>
+                    </br>
+                    <br><p><strong>Driver Name:</strong> Veeraya </p>
+
+                    <p><strong>Contact:</strong> +91 9876543210</p>
+                    <p><strong>Assigned Bus:</strong>Besant Nagar </p>
+</br>
+                    <br><p><strong>Driver Name:</strong> Ajay </p>
+                    
+                    <p><strong>Contact:</strong> +91 987654510</p>
+                    <p><strong>Assigned Bus:</strong> Balaji Nagar</p>
+                    </br>
+                    <br><p><strong>Driver Name:</strong> Raja</p>
+                    
+                    <p><strong>Contact:</strong> +91 9876543210</p>
+                    <p><strong>Assigned Bus:</strong> chengalpattu</p>
+                    </br>
+                    <br><p><strong>Driver Name:</strong> Raja</p>
+                    </p>
+                    <p><strong>Contact:</strong> +91 9876593210</p>
+                    <p><strong>Assigned Bus:</strong> Royapettah</p>
+                    </br>
+                    <br><p><strong>Driver Name:</strong> Venthan</p>
+                
+                    <p><strong>Contact:</strong> +91 9876543210</p>
+                    <p><strong>Assigned Bus:</strong> thiruvottiyur</p>
+                    </br>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript for interacting with the dashboard elements
+
+        // Function to update Driver Attendance for any driver
+        function updateAttendance(driverId) {
+            const statusElement = document.getElementById(`attendance-status-${driverId}`);
+            if (statusElement.textContent === 'Present') {
+                statusElement.textContent = 'Absent';
+            } else {
+                statusElement.textContent = 'Present';
+            }
+        }
+
+        // Function to simulate Bus Tracking
+        function trackBus() {
+            const locationElement = document.getElementById('bus-location');
+            locationElement.textContent = 'Station B'; // Update to another station
+        }
+
+        // Function to update Bus Timing
+        function updateTiming() {
+            const departureElement = document.getElementById('next-departure');
+            departureElement.textContent = '11:00 AM'; // Update to next time
+        }
+
+        // Show corresponding section based on the sidebar menu
+        document.getElementById('attendance-btn').addEventListener('click', function() {
+            document.getElementById('attendance-card').style.display = 'block';
+            document.getElementById('bus-tracking-card').style.display = 'none';
+            document.getElementById('bus-timing-card').style.display = 'none';
+            document.getElementById('bus-details-card').style.display = 'none';
+            document.getElementById('driver-details-card').style.display = 'none';
+        });
+
+        document.getElementById('bus-tracking-btn').addEventListener('click', function() {
+            document.getElementById('attendance-card').style.display = 'none';
+            document.getElementById('bus-tracking-card').style.display = 'block';
+            document.getElementById('bus-timing-card').style.display = 'none';
+            document.getElementById('bus-details-card').style.display = 'none';
+            document.getElementById('driver-details-card').style.display = 'none';
+        });
+
+        document.getElementById('bus-timing-btn').addEventListener('click', function() {
+            document.getElementById('attendance-card').style.display = 'none';
+            document.getElementById('bus-tracking-card').style.display = 'none';
+            document.getElementById('bus-timing-card').style.display = 'block';
+            document.getElementById('bus-details-card').style.display = 'none';
+            document.getElementById('driver-details-card').style.display = 'none';
+        });
+
+        document.getElementById('bus-details-btn').addEventListener('click', function() {
+            document.getElementById('attendance-card').style.display = 'none';
+            document.getElementById('bus-tracking-card').style.display = 'none';
+            document.getElementById('bus-timing-card').style.display = 'none';
+            document.getElementById('bus-details-card').style.display = 'block';
+            document.getElementById('driver-details-card').style.display = 'none';
+        });
+
+        document.getElementById('driver-details-btn').addEventListener('click', function() {
+            document.getElementById('attendance-card').style.display = 'none';
+            document.getElementById('bus-tracking-card').style.display = 'none';
+            document.getElementById('bus-timing-card').style.display = 'none';
+            document.getElementById('bus-details-card').style.display = 'none';
+            document.getElementById('driver-details-card').style.display = 'block';
+        });
+
+        // Initial state - show attendance card
+        document.getElementById('attendance-card').style.display = 'block';
+        document.getElementById('bus-tracking-card').style.display = 'none';
+        document.getElementById('bus-timing-card').style.display = 'none';
+        document.getElementById('bus-details-card').style.display = 'none';
+        document.getElementById('driver-details-card').style.display = 'none';
+    </script>
+</body>
+</html>
+        

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Bus Tracking with Geofencing - Chennai</title>
+
+    <!-- Leaflet.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; }
+        #map { height: 100vh; width: 75%; float: left; }
+        #sidebar { height: 100vh; width: 25%; float: left; padding: 20px; box-sizing: border-box; background-color: #eedf09; overflow-y: auto; }
+        #bus-log { margin-top: 20px; font-size: 14px; color: #333; }
+        .clear { clear: both; }
+        ul { list-style-type: none; padding: 0; }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <h2>Bus Details</h2>
+        <div id="bus-details"></div>
+        <div id="bus-log">
+            <h3>Bus Log</h3>
+            <ul id="log-list"></ul>
+        </div>
+    </div>
+    <div id="map"></div>
+    <div class="clear"></div>
+
+    <!-- Leaflet.js Library -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script>
+        let map = L.map('map').setView([12.8699, 80.2184], 13);
+
+        // OpenStreetMap Tile Layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Geofenced Area (Destination)
+        const geofenceCenter = [12.8699, 80.2184];
+        const geofenceRadius = 1000; 
+
+        // Draw Geofence Circle
+        let geofenceCircle = L.circle(geofenceCenter, {
+            color: 'red',
+            fillColor: '#f03',
+            fillOpacity: 0.3,
+            radius: geofenceRadius
+        }).addTo(map);
+
+        // Initial Bus Locations
+        let busLocations = {
+            "Kalliappa": [12.85, 80.22],
+            "Red Hills": [12.88, 80.20],
+            "Tondaripet": [12.90, 80.23],
+            "Besant Nagar": [12.87, 80.21],
+            "Perambur": [12.89, 80.24]
+        };
+
+        let busMarkers = {};
+        let userBusMarker = null;
+
+        // Function to move buses towards the destination
+        function moveBusTowardsDestination(bus, lat, lng) {
+            const speed = 0.0005;
+            let [destLat, destLng] = geofenceCenter;
+            
+            let newLat = lat + (destLat - lat) * speed;
+            let newLng = lng + (destLng - lng) * speed;
+
+            if (Math.abs(newLat - destLat) < 0.0001 && Math.abs(newLng - destLng) < 0.0001) {
+                newLat = destLat;
+                newLng = destLng;
+            }
+
+            busLocations[bus] = [newLat, newLng];
+        }
+
+        // Function to update bus locations
+        function updateBusLocations() {
+            for (let bus in busLocations) {
+                let [lat, lng] = busLocations[bus];
+                moveBusTowardsDestination(bus, lat, lng);
+
+                if (!busMarkers[bus]) {
+                    let icon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div style="background-color: red; width: 15px; height: 15px; border-radius: 50%;"></div>`,
+                        iconSize: [15, 15]
+                    });
+
+                    busMarkers[bus] = L.marker([lat, lng], { icon }).addTo(map)
+                        .bindPopup(`<strong>${bus}</strong> is here`);
+
+                    document.getElementById("bus-details").innerHTML += `<p><strong>${bus}:</strong> <span id="bus-status-${bus}">Moving...</span></p>`;
+                } else {
+                    busMarkers[bus].setLatLng([lat, lng]);
+                    busMarkers[bus].bindPopup(`<strong>${bus}</strong> at ${lat.toFixed(5)}, ${lng.toFixed(5)}`).openPopup();
+                }
+                updateBusLog(bus, lat, lng);
+            }
+        }
+
+        // Function to update bus log
+        function updateBusLog(busName, lat, lng) {
+            const logList = document.getElementById('log-list');
+            const logEntry = document.createElement('li');
+            logEntry.innerHTML = `[${new Date().toLocaleTimeString()}] <strong>${busName}:</strong> at ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            logList.appendChild(logEntry);
+            logList.scrollTop = logList.scrollHeight;
+
+            if (lat.toFixed(5) == geofenceCenter[0].toFixed(5) && lng.toFixed(5) == geofenceCenter[1].toFixed(5)) {
+                document.getElementById(`bus-status-${busName}`).textContent = `Arrived ✅`;
+            }
+        }
+
+        // Function to get live GPS location
+        function trackUserBus() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.watchPosition((position) => {
+                    let userLat = position.coords.latitude;
+                    let userLng = position.coords.longitude;
+
+                    if (!userBusMarker) {
+                        let userIcon = L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<div style="background-color: blue; width: 20px; height: 20px; border-radius: 50%;"></div>`,
+                            iconSize: [20, 20]
+                        });
+
+                        userBusMarker = L.marker([userLat, userLng], { icon: userIcon }).addTo(map)
+                            .bindPopup(`<strong>Your Bus</strong> is here`);
+                    } else {
+                        userBusMarker.setLatLng([userLat, userLng]);
+                        userBusMarker.bindPopup(`<strong>Your Bus</strong> at ${userLat.toFixed(5)}, ${userLng.toFixed(5)}`).openPopup();
+                    }
+                    updateBusLog("Your Bus", userLat, userLng);
+                }, (error) => {
+                    console.error("Error getting location: ", error);
+                }, { enableHighAccuracy: true });
+            }
+        }
+
+        // Start tracking user's bus location
+        trackUserBus();
+
+        // Update simulated buses every 3 seconds
+        setInterval(updateBusLocations, 3000);
+
+    </script>
+</body>
+</html>

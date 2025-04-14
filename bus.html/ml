@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Recognition from Camera</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        video {
+            width: 300px;
+            height: 200px;
+            border: 2px solid black;
+        }
+        canvas {
+            display: none;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #output {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.0.2/tesseract.min.js"></script>
+</head>
+<body>
+
+    <h1>Text Recognition from Camera</h1>
+    
+    <video id="video" autoplay></video>
+    <button id="capture-btn">Capture</button>
+    <canvas id="canvas"></canvas>
+    <p id="output">Recognized Text: <span id="text-result"></span></p>
+
+    <script>
+        // Select elements
+        const video = document.getElementById("video");
+        const captureBtn = document.getElementById("capture-btn");
+        const canvas = document.getElementById("canvas");
+        const textResult = document.getElementById("text-result");
+
+        // Access the Camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(error => {
+                console.error("Error accessing camera: ", error);
+            });
+
+        // Capture Image & Process OCR
+        captureBtn.addEventListener("click", () => {
+            const ctx = canvas.getContext("2d");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert image to text using Tesseract.js
+            Tesseract.recognize(
+                canvas, 
+                'eng', 
+                {
+                    logger: m => console.log(m) // Log progress
+                }
+            ).then(({ data: { text } }) => {
+                textResult.innerText = text;
+            }).catch(error => {
+                console.error("OCR Error: ", error);
+            });
+        });
+    </script>
+
+</body>
+</html>
+

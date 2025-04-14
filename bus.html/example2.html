@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrated Bus Management and Live Tracking</title>
+
+    <!-- Leaflet.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; }
+        #map { height: 100vh; width: 75%; float: left; }
+        #sidebar { height: 100vh; width: 25%; float: left; padding: 20px; box-sizing: border-box; background-color: #eedf09; overflow-y: auto; }
+        #bus-log { margin-top: 20px; font-size: 14px; color: #333; }
+        .clear { clear: both; }
+        ul { list-style-type: none; padding: 0; }
+        .attendance-box { margin-bottom: 10px; }
+        .attendance-box span { margin-right: 10px; }
+        .button { background-color: #000000; color: white; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer; }
+        .button:hover { background-color: #eb0e0e; }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div id="sidebar">
+        <h2>Bus Management Dashboard</h2>
+        <div id="attendance-section">
+            <h3>Driver Attendance</h3>
+            <div class="attendance-box">
+                <span>Suresh (Kalliappa)</span>
+                <span id="attendance-status-1">Present</span>
+            </div>
+            <div class="attendance-box">
+                <span>Karthick (Urappakam)</span>
+                <span id="attendance-status-2">Present</span>
+            </div>
+            <div class="attendance-box">
+                <span>Mani (Royapettah)</span>
+                <span id="attendance-status-3">Present</span>
+            </div>
+            <div class="attendance-box">
+                <span>Selvam (NGO Colony)</span>
+                <span id="attendance-status-4">Present</span>
+            </div>
+            <div class="attendance-box">
+                <span>Sekar (Tondaripet)</span>
+                <span id="attendance-status-5">Present</span>
+            </div>
+        </div>
+        <div id="bus-log">
+            <h3>Bus Log</h3>
+            <ul id="log-list"></ul>
+        </div>
+    </div>
+
+    <!-- Map -->
+    <div id="map"></div>
+    <div class="clear"></div>
+
+    <!-- Leaflet.js Library -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script>
+        // Initialize the map
+        let map = L.map('map').setView([12.8699, 80.2184], 13);
+
+        // OpenStreetMap Tile Layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Geofenced Area (Destination)
+        const geofenceCenter = [12.8699, 80.2184];
+        const geofenceRadius = 1000; // 1km radius
+
+        // Draw Geofence Circle
+        let geofenceCircle = L.circle(geofenceCenter, {
+            color: 'red',
+            fillColor: '#f03',
+            fillOpacity: 0.3,
+            radius: geofenceRadius
+        }).addTo(map);
+
+        // Initial Bus Locations
+        let busLocations = {
+            "Kalliappa": [12.85, 80.22],
+            "Urappakam": [12.88, 80.20],
+            "Royapettah": [12.90, 80.23],
+            "NGO Colony": [12.87, 80.21],
+            "Tondaripet": [12.89, 80.24]
+        };
+
+        let busMarkers = {};
+        let userBusMarker = null;
+
+        // Track bus geofence status
+        let busGeofenceStatus = {
+            "Kalliappa": false,
+            "Urappakam": false,
+            "Royapettah": false,
+            "NGO Colony": false,
+            "Tondaripet": false
+        };
+
+        // Custom Location Icon
+        const locationIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', // Replace with your icon URL
+            iconSize: [30, 30], // Size of the icon
+            iconAnchor: [15, 15], // Point of the icon which will correspond to marker's location
+        });
+
+        // Function to move buses towards the destination
+        function moveBusTowardsDestination(bus, lat, lng) {
+            const speed = 0.0005;
+            let [destLat, destLng] = geofenceCenter;
+            
+            let newLat = lat + (destLat - lat) * speed;
+            let newLng = lng + (destLng - lng) * speed;
+
+            if (Math.abs(newLat - destLat) < 0.0001 && Math.abs(newLng - destLng) < 0.0001) {
+                newLat = destLat;
+                newLng = destLng;
+            }
+
+            busLocations[bus] = [newLat, newLng];
+        }
+
+        // Function to update bus locations
+        function updateBusLocations() {
+            for (let bus in busLocations) {
+                let [lat, lng] = busLocations[bus];
+                moveBusTowardsDestination(bus, lat, lng);
+
+                if (!busMarkers[bus]) {
+                    let icon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div style="background-color: red; width: 15px; height: 15px; border-radius: 50%;"></div>`,
+                        iconSize: [15, 15]
+                    });
+
+                    busMarkers[bus] = L.marker([lat, lng], { icon }).addTo(map)
+                        .bindPopup(`<strong>${bus}</strong> is here`);
+                } else {
+                    busMarkers[bus].setLatLng([lat, lng]);
+                    busMarkers[bus].bindPopup(`<strong>${bus}</strong> at ${lat.toFixed(5)}, ${lng.toFixed(5)}`).openPopup();
+                }
+
+                checkGeofence(bus, lat, lng);
+                updateBusLog(bus, lat, lng);
+            }
+        }
+
+        // Function to check geofence and update attendance
+        function checkGeofence(busName, lat, lng) {
+            const distance = map.distance([lat, lng], geofenceCenter);
+
+            if (distance <= geofenceRadius) {
+                if (!busGeofenceStatus[busName]) {
+                    busGeofenceStatus[busName] = true;
+                    alert(`${busName} has entered the geofenced area.`);
+                }
+                document.getElementById(`attendance-status-${getBusId(busName)}`).textContent = "Present ✅";
+            } else {
+                if (busGeofenceStatus[busName]) {
+                    busGeofenceStatus[busName] = false;
+                    alert(`${busName} has exited the geofenced area.`);
+                }
+                document.getElementById(`attendance-status-${getBusId(busName)}`).textContent = "Absent ❌";
+            }
+        }
+
+        // Function to map bus names to attendance IDs
+        function getBusId(busName) {
+            const busIdMap = {
+                "Kalliappa": 1,
+                "Urappakam": 2,
+                "Royapettah": 3,
+                "NGO Colony": 4,
+                "Tondaripet": 5
+            };
+            return busIdMap[busName];
+        }
+
+        // Function to update bus log
+        function updateBusLog(busName, lat, lng) {
+            const logList = document.getElementById('log-list');
+            const logEntry = document.createElement('li');
+            logEntry.innerHTML = `[${new Date().toLocaleTimeString()}] <strong>${busName}:</strong> at ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            logList.appendChild(logEntry);
+            logList.scrollTop = logList.scrollHeight;
+        }
+
+        // Function to get live GPS location
+        function trackUserBus() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.watchPosition((position) => {
+                    let userLat = position.coords.latitude;
+                    let userLng = position.coords.longitude;
+
+                    if (!userBusMarker) {
+                        userBusMarker = L.marker([userLat, userLng], { icon: locationIcon }).addTo(map)
+                            .bindPopup(`<strong>Your Location</strong>`);
+                    } else {
+                        userBusMarker.setLatLng([userLat, userLng]);
+                        userBusMarker.bindPopup(`<strong>Your Location</strong> at ${userLat.toFixed(5)}, ${userLng.toFixed(5)}`).openPopup();
+                    }
+
+                    checkGeofence("Your Location", userLat, userLng);
+                    updateBusLog("Your Location", userLat, userLng);
+                }, (error) => {
+                    console.error("Error getting location: ", error);
+                }, { enableHighAccuracy: true });
+            } else {
+                alert("Geolocation is not supported by your browser.");
+            }
+        }
+
+        // Start tracking user's bus location
+        trackUserBus();
+
+        // Update simulated buses every 3 seconds
+        setInterval(updateBusLocations, 3000);
+    </script>
+
+</body>
+</html>
